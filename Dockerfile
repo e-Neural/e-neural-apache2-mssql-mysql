@@ -9,7 +9,7 @@ ENV TERM xterm
 RUN apt-get update && \
   apt-get -yqq install apt-transport-https  ca-certificates \
   vim unzip libpng-dev libzip-dev unzip vim joe \
-  wget curl git ssh gnupg2 
+  wget curl git ssh gnupg2 cron
 
 RUN \
   wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg && \
@@ -58,8 +58,14 @@ RUN mkdir -p /var/www && a2enmod vhost_alias ssl  rewrite headers
 RUN ln -sf /proc/self/fd/1 /var/log/apache2/access.log && \
     ln -sf /proc/self/fd/1 /var/log/apache2/error.log
 
+COPY cron-restart /etc/cron.d/cron-restart
+RUN chmod 0644 /etc/cron.d/cron-restart
+RUN crontab /etc/cron.d/cron-restart
+RUN touch /var/log/cron.log
+
+
 
 EXPOSE 80 443
 
-CMD  /usr/sbin/apache2ctl -D FOREGROUND
+CMD  cron && /usr/sbin/apache2ctl -D FOREGROUND
 
